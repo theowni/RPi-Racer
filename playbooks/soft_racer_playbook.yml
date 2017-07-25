@@ -1,0 +1,8 @@
+---
+- hosts: localhost
+  tasks:
+      - name: "Run setup"
+        command: bash -c "cd /racer_soft/setup && bash install.sh"
+
+      - name: "Remove setup files"
+        command: bash -c "rm -rf /mnt/rpiem/racer_soft/setup"
