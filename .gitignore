@@ -1,0 +1,8 @@
+*.swp
+*.swo
+*.pyc
+*.zip
+*.img
+*.img.back
+venv
+RPI-Disk-Image-Decorator
