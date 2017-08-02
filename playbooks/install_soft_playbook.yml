@@ -1,0 +1,11 @@
+---
+- hosts: localhost
+  tasks:
+      - name: "Running setup racer software"
+        shell: "cd /racer_soft/setup && bash install.sh"
+
+      - name: "Removing setup files"
+        shell: "rm -rf /mnt/rpiem/racer_soft/setup"
+
+      - name: "Setting pigpiod service"
+        shell: printf "\nsudo service pigpiod start\n" >> /etc/rc.local

@@ -7,10 +7,10 @@ cd src
 # mount raspbian image 
 python3 rpiem.py mount -p ../../raspbian.img
 # setup WiFI
-python3 rpiem.py run_playbook -f ../../playbooks/wifi_playbook.yml -p ../../raspbian.img
+python3 rpiem.py run_playbook -f ../../playbooks/pi_as_router_playbook.yml -p ../../raspbian.img
 # copy source codes to mounted drive
 sudo cp -r ../../src/racer_soft /mnt/rpiem/
 # install soft
-python3 rpiem.py run_playbook -f ../../playbooks/soft_racer_playbook.yml -p ../../raspbian.img
+python3 rpiem.py run_playbook -f ../../playbooks/install_soft_playbook.yml -p ../../raspbian.img
 # umount raspbian image at finish
 python3 rpiem.py umount

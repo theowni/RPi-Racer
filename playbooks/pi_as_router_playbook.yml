@@ -1,0 +1,148 @@
+---
+- hosts: localhost
+  tasks:
+      - name: "Update and Upgrade"
+        apt:
+          upgrade: "yes"
+          update_cache: "yes"
+          cache_valid_time: 86400 #One day
+
+      - name: "Enabling ssh"
+        file: path=/boot/ssh state=touch
+
+      - name: "Installs hostapd"
+        apt:
+           name: hostapd
+           state: present
+
+      - name: "Installs udhcpd"
+        apt:
+           name: udhcpd
+           state: present
+
+
+      - name: "Write configurations to /etc/udhcpd.conf"
+        copy:
+          dest: /etc/udhcpd.conf
+          content: |
+                  start 192.168.254.2 # here starts range of IP addresses
+                  end 192.168.254.20  # here ends this range
+                  interface wlan0
+                  remaining yes
+                  opt dns 8.8.8.8 4.2.2.2 # DNS by Google
+                  opt subnet 255.255.255.0
+                  opt router 192.168.254.1 # RPi address in network
+                  opt wins 192.168.254.1
+                  opt lease 864000
+
+      - name: "Write configurations to /etc/default/udhcpd"
+        copy:
+          dest: /etc/default/udhcpd
+          content: |
+                  # Comment the following line to enable
+                  # DHCPD_ENABLED="no"
+                  
+                  # Options to pass to busybox' udhcpd.
+                  #
+                  # -S    Log to syslog
+                  # -f    run in foreground
+                  
+                  DHCPD_OPTS="-S"
+
+      - name: "Write configurations to /etc/network/interfaces"
+        copy:
+          dest: /etc/network/interfaces
+          content: |
+                  # interfaces(5) file used by ifup(8) and ifdown(8)
+                  #
+                  # Please note that this file is written to be used with dhcpcd
+                  # For static IP, consult /etc/dhcpcd.conf and 'man dhcpcd.conf'
+                  #
+                  # Include files from /etc/network/interfaces.d:
+                  source-directory /etc/network/interfaces.d
+                  
+                  auto wlan0
+                  iface lo inet loopback
+                  
+                  iface eth0 inet manual
+                  
+                  #allow-hotplug wlan0
+                  iface wlan0 inet static
+                    address 192.168.254.1
+                    netmask 255.255.255.0
+                  
+                  up iptables-restore < /etc/iptables.ipv4.nat
+
+      - name: "Write configurations to /etc/hostapd/hostapd.conf"
+        copy:
+          dest: /etc/hostapd/hostapd.conf
+          content: |
+                  interface=wlan0
+                  driver=nl80211
+                  ssid=Woz Terenowy ABW nr 153
+                  hw_mode=g
+                  channel=6
+                  auth_algs=1
+                  wmm_enabled=0
+
+      - name: "Write configurations to /etc/default/hostapd"
+        copy:
+          dest: /etc/default/hostapd
+          content: |
+                  # Defaults for hostapd initscript
+                  #
+                  # See /usr/share/doc/hostapd/README.Debian for information about alternative
+                  # methods of managing hostapd.
+                  #
+                  # Uncomment and set DAEMON_CONF to the absolute path of a hostapd configuration
+                  # file and hostapd will be started during system boot. An example configuration
+                  # file can be found at /usr/share/doc/hostapd/examples/hostapd.conf.gz
+                  #
+                  DAEMON_CONF="/etc/hostapd/hostapd.conf"
+                 
+                  # Additional daemon options to be appended to hostapd command:-
+                  #   -d   show more debug messages (-dd for even more)
+                  #   -K   include key data in debug messages
+                  #   -t   include timestamps in some debug messages
+                  #
+                  # Note that -B (daemon mode) and -P (pidfile) options are automatically
+                  # configured by the init.d script and must not be added to DAEMON_OPTS.
+                  #
+                  #DAEMON_OPTS=""
+
+      - name: "Set router forward configuration"
+        shell: printf "\nnet.ipv4.ip_forward=1\n" >> /etc/sysctl.conf
+
+      - name: "Write configurations to /etc/rc.local"
+        copy:
+          dest: /etc/rc.local
+          content: |
+                  #!/bin/sh -e
+                  #
+                  # rc.local
+                  #
+                  # This script is executed at the end of each multiuser runlevel.
+                  # Make sure that the script will "exit 0" on success or any other
+                  # value on error.
+                  #
+                  # In order to enable or disable this script just change the execution
+                  # bits.
+                  #
+                  # By default this script does nothing.
+                  
+                  # Print the IP address
+                  
+                  sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+                  sudo iptables -A FORWARD -i eth0 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+                  sudo iptables -A FORWARD -i wlan0 -o eth0 -j ACCEPT
+                  sudo sh -c "iptables-save > /etc/iptables.ipv4.nat"
+                  
+                  _IP=$(hostname -I) || true
+                  if [ "$_IP"  ]; then
+                    printf "My IP address is %s\n" "$_IP"
+                  fi
+                  
+                  sudo service hostapd start
+                  sudo service udhcpd start
+                  sudo update-rc.d hostapd enable
+                  sudo update-rc.d udhcpd enable

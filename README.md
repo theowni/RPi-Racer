@@ -1,15 +1,13 @@
 # Overview
-There will be content soon ;)
+This project aims to build remote controlled (via WiFI and PC gamepad) Raspberry Pi car.
 
-# Warning
-For now, don't expect it will work just out of the box ;)
-
-# Installation
-Prepare .img file ready-to-burn on Your Pi is just easy as run this:
+# Installation on Raspberry
+1. Download latest Raspbian Jessie and name it raspbian.img
+2. Run:
 ```sh
-bash create_img.sh
+sudo bash create_img.sh
 ```
 
 # Milestons
 * prototype working code (checked) 
-* make working easy-deployment 
+* make working easy-deployment (checked)
