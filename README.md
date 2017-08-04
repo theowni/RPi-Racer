@@ -23,6 +23,9 @@ sudo python3 run.py
 # Demo
 Soon, there will be demo
 
+# Construction
+![alt text](https://raw.githubusercontent.com/theowni/rpi-racer/master/hard_docs/electronic_overview.png "Electronics")
+
 # Milestons
 * prototype working code (checked) 
 * make working easy-deployment (checked)
