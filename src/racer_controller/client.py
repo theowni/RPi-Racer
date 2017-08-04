@@ -1,7 +1,7 @@
 import socket
 from command import Command
 
-HOST = '192.168.1.185'
+HOST = '192.168.254.1'
 PORT = 6534
 
 

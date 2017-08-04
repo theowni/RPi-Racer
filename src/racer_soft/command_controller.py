@@ -2,7 +2,7 @@ from subprocess import call
 
 
 MIN_SPEED = 1400
-MAX_SPEED = 2000
+MAX_SPEED = 1600  # technically max is 2000
 SPEED_PIN = 4
 
 MIN_DIRECTION = 1000
@@ -11,12 +11,11 @@ DIRECTION_PIN = 12
 
 
 class CommandController:
-    current_speed = None
-    current_direction = None
-    current_mode = None
-
     def __init__(self):
-        pass
+        self.current_speed = None
+        self.current_direction = None
+        self.current_mode = None
+        self.reverse_speed = False
 
     def handle(self, command):
         # TODO
@@ -31,18 +30,27 @@ class CommandController:
     def run_command(self, normalized_command):
         print('Run command: %s' % normalized_command)
 
-        if self.current_speed != normalized_command.speed:
+        if normalized_command.speed > 0:
+            self.reverse_speed = False
             cur_value = MIN_SPEED + normalized_command.speed * \
                 (MAX_SPEED - MIN_SPEED)
             cur_value = int(cur_value)
 
             call("pigs s %s %s" % (SPEED_PIN, cur_value), shell=True)
             self.current_speed = cur_value
+        elif normalized_command.speed < 0:
+            if not self.reverse_speed:
+                call("pigs s %s 500" % (SPEED_PIN,), shell=True)
+                call("pigs s %s 1400" % (SPEED_PIN,), shell=True)
+                self.reverse_speed = True
+            call("pigs s %s 1250" % (SPEED_PIN,), shell=True)
+        else:
+            self.reverse_speed = False
+            call("pigs s %s 1400" % (SPEED_PIN,), shell=True)
 
-        if self.current_direction != normalized_command.direction:
-            cur_value = MIN_SPEED + normalized_command.direction * \
-                (MAX_DIRECTION - MIN_DIRECTION)
-            cur_value = int(cur_value)
+        cur_value = MIN_DIRECTION + normalized_command.direction * \
+            (MAX_DIRECTION - MIN_DIRECTION)
+        cur_value = int(cur_value)
 
-            call("pigs s %s %s" % (DIRECTION_PIN, cur_value), shell=True)
-            self.current_direction = cur_value
+        call("pigs s %s %s" % (DIRECTION_PIN, cur_value), shell=True)
+        self.current_direction = cur_value

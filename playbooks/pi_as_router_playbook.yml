@@ -146,3 +146,7 @@
                   sudo service udhcpd start
                   sudo update-rc.d hostapd enable
                   sudo update-rc.d udhcpd enable
+
+                  sudo service pigpiod start
+                  sudo pigs s 4 1400
+                  cd /racer_soft && sudo python3 server.py

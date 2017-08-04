@@ -62,6 +62,9 @@ class Controller:
         length = sqrt(coords[0]**2 + coords[1]**2)
         percentage_speed = length
 
+        if coords[1] > 0:
+            percentage_speed *= -1
+
         return percentage_speed
 
     def unit_vector(self, vector):
